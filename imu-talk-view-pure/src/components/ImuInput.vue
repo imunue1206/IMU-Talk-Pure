@@ -105,14 +105,21 @@ function clearInputValue() {
 // 验证输入内容
 function validateInput() {
 
-    if (showHint.value) {
-        if (lodash.isEmpty(internalValue.value)) {
-            resetHintToRequire()
-        } else if (typeof props.validator === 'function') {
-            hint.value = props.validator(internalValue.value)
-        }
-        changeView()
+    if (!showHint.value) {
+        return;
     }
+
+    if (lodash.isEmpty(internalValue.value)) {
+        resetHintToRequire()
+    } else {
+
+        if (typeof props.validator === 'function') {
+            hint.value = props.validator(internalValue.value)
+        } else {
+            hint.value=''
+        }
+    }
+    changeView()
 }
 
 const componnetColor = ref('') // 颜色动态class

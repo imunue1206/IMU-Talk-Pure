@@ -1,7 +1,7 @@
 <template>
     <div class="login-box box">
-        <ImuInput v-model="email" title="邮箱" type="warning" modelValue="email" :validator="emailCheck"/>
-        <input v-model="password" type="password" class="input" placeholder="请输入密码">
+        <ImuInput v-model="email" title="邮箱" type="info" modelValue="email" :validator="emailCheck" />
+        <ImuInput v-model="password" title="密码" type="info" modelValue="password" />
         <button class="btn" @click="handleLogin">登陆</button>
         <a class="black" href="/register">没有账号？ 前往注册</a>
     </div>
