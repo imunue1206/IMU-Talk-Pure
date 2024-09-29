@@ -1,6 +1,6 @@
 <template>
     <div class="login-box box">
-        <ImuInput v-model="email" lable="邮箱" type="info" :validator="emailCheck"/>
+        <ImuInput v-model="email" title="邮箱" type="warning" modelValue="email" :validator="emailCheck"/>
         <input v-model="password" type="password" class="input" placeholder="请输入密码">
         <button class="btn" @click="handleLogin">登陆</button>
         <a class="black" href="/register">没有账号？ 前往注册</a>
@@ -19,7 +19,12 @@ const password = ref('');
 const router = useRouter();
 
 const emailCheck = (value) => {
-    return value === 'test'
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+    if (emailRegex.test(value)) {
+        return ''; // 邮箱格式正确时返回空字符串
+    } else {
+        return '邮箱格式错误'; // 邮箱格式不正确时返回错误提示
+    }
 }
 
 const handleLogin = async () => {

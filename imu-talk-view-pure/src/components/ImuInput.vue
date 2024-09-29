@@ -1,40 +1,43 @@
 <template>
     <div class="input-container">
         <!-- 主题输入框 -->
-        <input class="input-box" v-model="internalValue" @input="handleInput" @blur="validateInput" />
+        <input :class="['input-box', componnetBorderColor]" v-model="internalValue" @blur="validateInput" />
 
         <!-- 左上角嵌入式文字提示 -->
-        <div v-if="props.title!==''" class="input-float-text">{{ title }}</div>
+        <div v-if="props.title !== ''" :class="['input-float-text', componnetColor]">
+            {{ title }}
+        </div>
 
         <!-- 文字清空按钮 -->
-        <div v-if="internalValue!==''" class="input-clear-container" @click="clearInputValue">
-            <CloseCircleOutlined />
+        <div v-if="internalValue !== ''" :class="['input-clear-container', componnetColor]" @click="clearInputValue">
+            <CloseOutlined />
         </div>
 
         <!-- 右上角状态标识图标 -->
-        <div v-if="showHint" class="input-hint-container">
-            <div v-if="hint!==''">
+        <div v-if="showHint" :class="['input-hint-container', componnetColor]">
+            <div v-if="hint !== ''">
                 <a-tooltip placement="topLeft">
                     <template #title>{{ hint }}</template>
-                    <ExclamationCircleOutlined />
+                    <ExclamationCircleOutlined class="blinking-icon" />
                 </a-tooltip>
             </div>
             <div v-else>
-                <CheckCircleOutlined/>
+                <CheckCircleOutlined />
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
+import lodash from 'lodash'
 import { ref, watch, defineProps, defineEmits, onMounted } from 'vue';
-import { ExclamationCircleOutlined, CloseCircleOutlined, CheckCircleOutlined } from '@ant-design/icons-vue';
+import { ExclamationCircleOutlined, CloseOutlined, CheckCircleOutlined } from '@ant-design/icons-vue';
 
 // 定义接收的属性
 const props = defineProps({
     title: {
         type: String,
-        default: '',
+        default: 'ce shi yogn',
     },
     modelValue: {
         type: String,
@@ -44,7 +47,7 @@ const props = defineProps({
         type: String,
         default: ''
     },
-    validateMethod: {
+    validator: {
         type: Function,
     },
 });
@@ -73,51 +76,69 @@ watch(
     }
 );
 
-const hint = ref('此处不能为空');
 const showHint = ref(false);
 
 // 根据type控制hint模块显示与否
 onMounted(() => {
-    if (newValue === 'info' || 'warning') {
+
+    let type = props.type
+
+    if (type === 'info' || type === 'warning') {
         showHint.value = true;
     } else {
         showHint.value = false;
     }
 })
 
+const hint = ref('此处必须填写');
+
+function resetHintToRequire() {
+    hint.value = '此处必须填写';
+}
+
 // 清除输入框的值
 function clearInputValue() {
     internalValue.value = '';
-    hint.value = '此处必须填写';
+    resetHintToRequire()
 }
 
 // 验证输入内容
 function validateInput() {
 
-    if (type === 'info' || type === 'warning') {
-
-        let isEmpty = false;
-
-        if (_.isEmpty(internalValue.value)) {
-
-            isEmpty = false;
-            hint.value = '此处必须填写';
-            // 对应css变化
-        } else if (!isEmpty && !_.isEmpty(props.validateMethod)) {
-
-            let res = props.validateMethod(internalValue.value)
-
-            if (res === '') {
-                //成功对应操作
-                //主要是颜色的更改已经图标的更改
-            } else {
-                //失败对应操作
-                //hint的更新，以及颜色更改，
-                hint.value = res;
-            }
+    if (showHint.value) {
+        if (lodash.isEmpty(internalValue.value)) {
+            resetHintToRequire()
+        } else if (typeof props.validator === 'function') {
+            hint.value = props.validator(internalValue.value)
         }
+        changeView()
     }
 }
+
+const componnetColor = ref('') // 颜色动态class
+const componnetBorderColor = ref('') // 边框动态class
+
+function changeView() {
+
+    if (showHint) {
+        // 根据hint有没有值，推断成功与否，若成功，直接就是绿色
+        if (hint.value === '') {
+            componnetColor.value = "success";
+            componnetBorderColor.value = 'success_input'
+
+        } else if (props.type === 'info') {
+            componnetColor.value = "info";
+            componnetBorderColor.value = 'info_input'
+
+
+        } else if (props.type === 'warning') {
+            componnetColor.value = 'warning'
+            componnetBorderColor.value = 'warning_input'
+        }
+    }
+
+}
+
 </script>
 
 <style scoped>
@@ -144,6 +165,46 @@ function validateInput() {
     transition: ease-in-out 0.3s;
 }
 
+.blinking-icon {
+    animation: blink 5s infinite ease-in-out;
+    /* 更平缓的闪烁效果 */
+}
+
+/* 验证成功样式 */
+.success {
+    color: green;
+}
+
+/* info 类型样式 */
+.info {
+    color: darkorange;
+}
+
+/* warning 类型样式 */
+.warning {
+    color: orangered;
+}
+
+/* 验证成功样式 */
+.success_input {
+    color: green;
+    border: 1.5px solid green;
+}
+
+/* info 类型样式 */
+.info_input {
+    color: darkorange;
+    border: 1.5px solid darkorange;
+    animation: shake 0.3s;
+}
+
+/* warning 类型样式 */
+.warning_input {
+    color: orangered;
+    border: 1.5px solid orangered;
+    animation: shake 0.3s;
+}
+
 /* 聚焦时缩放效果 */
 .input-box:focus {
     transform: scale(1.02);
@@ -155,24 +216,26 @@ function validateInput() {
 }
 
 .input-float-text {
+    z-index: 9;
     position: absolute;
     margin-bottom: 35px;
     margin-left: 20px;
     height: 20px;
     max-width: 100px;
-    font-size: 12px;
+    font-size: 13px;
     padding-left: 5px;
     padding-right: 5px;
     background-color: white;
 }
 
 .input-clear-container {
+    z-index: 9;
     position: absolute;
     width: 30px;
     height: 30px;
     margin-bottom: 10px;
     margin-left: 270px;
-    font-size: 17px;
+    font-size: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,5 +251,49 @@ function validateInput() {
     display: flex;
     align-items: center;
     justify-content: end;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-3px);
+    }
+
+    50% {
+        transform: translateX(3px);
+    }
+
+    75% {
+        transform: translateX(-3px);
+    }
+}
+
+/* 闪烁动画效果 */
+@keyframes blink {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    10% {
+        transform: scale(1.2);
+        filter: brightness(1.1);
+    }
+
+    20% {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 </style>

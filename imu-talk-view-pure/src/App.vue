@@ -7,7 +7,7 @@
 
         <!-- Footer -->
         <footer class="footer-box">
-            &copy; 2024 IMU-Blog. All rights reserved.
+            &copy; 2024 IMU-Talk-Pure. All rights reserved.
         </footer>
     </div>
 </template>
