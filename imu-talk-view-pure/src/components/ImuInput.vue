@@ -37,7 +37,7 @@ import { ExclamationCircleOutlined, CloseOutlined, CheckCircleOutlined } from '@
 const props = defineProps({
     title: {
         type: String,
-        default: 'ce shi yogn',
+        required: true,
     },
     modelValue: {
         type: String,
@@ -99,7 +99,8 @@ function resetHintToRequire() {
 // 清除输入框的值
 function clearInputValue() {
     internalValue.value = '';
-    resetHintToRequire()
+    resetHintToRequire();
+    validateInput();
 }
 
 // 验证输入内容
